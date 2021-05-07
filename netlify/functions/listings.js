@@ -13,7 +13,12 @@ let fs = require('fs')
 
 // defines a lambda function
 exports.handler = async function(event) {
+    // write the event object to the back-end console
+  console.log(event.queryStringParameters.bedrooms)
 
+  // get the minimum number of bedrooms from the querystring parameters
+  let minBedrooms = event.queryStringParameters.minBedrooms
+  
   // read listings CSV file from disk
   let listingsFile = fs.readFileSync(`./listings.csv`)
   
@@ -21,23 +26,39 @@ exports.handler = async function(event) {
   let listingsFromCsv = await csv(listingsFile)
 
   // write the number of listings (the array's length) to the back-end console
+  console.log(`There are ${listingsFromCsv.length} listings`)
 
   // write the first few listings to the back-end console, to see what we're working with
+  console.log(listingsFromCsv[0])
+  console.log(listingsFromCsv[1])
+  console.log(listingsFromCsv[2])
+  console.log(listingsFromCsv[3])
 
   // create a new object to hold the count and listings data
+  let listingsToReturn = {
+    listings: [],
+    count: 0
+  }
 
   // start with an empty Array for the listings
-  
-  // loop through all listings, for each one:
-    // store each listing in memory
-    // check if the rating is at least 99, if so:
-      // add the listing to the Array of listings to return
+  // let listings = []
 
+  // loop through all listings, for each one:
+  for (let i = 0 ; i < listingsFromCsv.length ; i++) {
+    // store each listing in memory
+    let listing = listingsFromCsv[i]
+    // check if the rating is at least 99, if so:
+    if (listing.review_scores_rating >= 99 && listing.bedrooms>= minBedrooms) {
+      // add the listing to the Array of listings to return
+    listingsToReturn.listings.push(listing)
+    }
+   }
   // add the number of listings to the returned listings Object
+  listingsToReturn.count = listingsToReturn.listings.length
 
   // a lambda function returns a status code and a string of data
   return {
     statusCode: 200, // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-    body: `Hello from the back-end!` // a string of data
+    body: JSON.stringify(listingsToReturn) // a string of data
   }
 }
